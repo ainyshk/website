@@ -10,7 +10,8 @@
     --bg: #0f172a;
     --panel: #1e293b;
     --text: #f8fafc;
-    --accent: #38bdf8;
+    --map-bg: #0a0f1f;
+    --border: #334155;
     --map-size: min(80vw, 500px);
   }
 
@@ -28,66 +29,47 @@
   h1 {
     margin-bottom: 10px;
     font-size: 1.8rem;
+    font-weight: 600;
   }
 
   #world {
     position: relative;
     width: var(--map-size);
     height: var(--map-size);
-    background: #0a0f1f;
-    border: 2px solid #334155;
+    background: var(--map-bg);
+    border: 2px solid var(--border);
     border-radius: 12px;
     margin-top: 20px;
     overflow: hidden;
+    cursor: crosshair;
   }
 
   /* Landmark shapes */
-  .shape-square {
-    width: 18px;
-    height: 18px;
-    background: var(--color);
-  }
-
-  .shape-circle {
-    width: 18px;
-    height: 18px;
-    background: var(--color);
-    border-radius: 50%;
-  }
-
+  .shape-square { width: 18px; height: 18px; background: var(--color); }
+  .shape-circle { width: 18px; height: 18px; background: var(--color); border-radius: 50%; }
   .shape-triangle {
-    width: 0;
-    height: 0;
+    width: 0; height: 0;
     border-left: 9px solid transparent;
     border-right: 9px solid transparent;
     border-bottom: 18px solid var(--color);
   }
-
   .shape-ring {
-    width: 18px;
-    height: 18px;
+    width: 18px; height: 18px;
     border: 3px solid var(--color);
     border-radius: 50%;
     background: transparent;
   }
-
   .shape-diamond {
-    width: 16px;
-    height: 16px;
+    width: 16px; height: 16px;
     background: var(--color);
     transform: rotate(45deg);
   }
-
-  .shape-rect {
-    width: 22px;
-    height: 12px;
-    background: var(--color);
-  }
+  .shape-rect { width: 22px; height: 12px; background: var(--color); }
 
   .landmark {
     position: absolute;
     transform: translate(-50%, -50%);
-    cursor: pointer;
+    pointer-events: none;
   }
 
   .label {
@@ -110,13 +92,30 @@
     text-align: center;
     font-size: 1rem;
   }
+
+  #score {
+    margin-top: 10px;
+    font-size: 1.1rem;
+    opacity: 0.9;
+  }
+
+  .pulse {
+    animation: pulse 0.6s ease-out;
+  }
+
+  @keyframes pulse {
+    0% { transform: translate(-50%, -50%) scale(1); }
+    50% { transform: translate(-50%, -50%) scale(1.4); }
+    100% { transform: translate(-50%, -50%) scale(1); }
+  }
 </style>
 </head>
 
 <body>
 
 <h1>Landmark Guessing Game</h1>
-<div id="info">Click the landmark you think matches the description.</div>
+<div id="info">Click on the map where you think the landmark is.</div>
+<div id="score">Score: 0 | Round: 1 / 5</div>
 
 <div id="world"></div>
 
@@ -133,9 +132,14 @@ const landmarks = [
 
 const world = document.getElementById("world");
 const info = document.getElementById("info");
+const scoreBox = document.getElementById("score");
 
-/* Render landmarks */
-function renderLandmarks() {
+let score = 0;
+let round = 1;
+let target = null;
+
+/* Render landmarks (hidden during guessing) */
+function renderLandmarks(show = false) {
   world.innerHTML = "";
 
   landmarks.forEach(lm => {
@@ -144,21 +148,68 @@ function renderLandmarks() {
     dot.style.setProperty("--color", lm.color);
     dot.style.left = lm.x + "%";
     dot.style.top = lm.y + "%";
-
-    dot.onclick = () => {
-      info.textContent = `You clicked: ${lm.name}`;
-    };
+    dot.style.opacity = show ? 1 : 0;
 
     const label = document.createElement("div");
     label.className = "label";
     label.textContent = lm.id;
+    label.style.opacity = show ? 1 : 0;
 
     dot.appendChild(label);
     world.appendChild(dot);
   });
 }
 
-renderLandmarks();
+/* Pick a random target */
+function newRound() {
+  target = landmarks[Math.floor(Math.random() * landmarks.length)];
+  info.textContent = `Find: ${target.name}`;
+  renderLandmarks(false);
+}
+
+/* Distance formula */
+function distance(x1, y1, x2, y2) {
+  return Math.hypot(x1 - x2, y1 - y2);
+}
+
+/* Handle guess */
+world.onclick = (e) => {
+  const rect = world.getBoundingClientRect();
+  const guessX = ((e.clientX - rect.left) / rect.width) * 100;
+  const guessY = ((e.clientY - rect.top) / rect.height) * 100;
+
+  const dist = distance(guessX, guessY, target.x, target.y);
+  const points = Math.max(0, Math.round(100 - dist));
+
+  score += points;
+
+  info.textContent = `You were ${dist.toFixed(1)} units away (+${points} points)`;
+  scoreBox.textContent = `Score: ${score} | Round: ${round} / 5`;
+
+  revealCorrectLocation();
+
+  setTimeout(() => {
+    round++;
+    if (round > 5) {
+      info.textContent = `Game over! Final score: ${score}`;
+      renderLandmarks(true);
+    } else {
+      newRound();
+    }
+  }, 1200);
+};
+
+/* Show correct location with pulse animation */
+function revealCorrectLocation() {
+  renderLandmarks(true);
+
+  const dots = [...world.children];
+  const correct = dots.find(d => d.querySelector(".label").textContent === target.id);
+  correct.classList.add("pulse");
+}
+
+/* Start game */
+newRound();
 </script>
 
 </body>

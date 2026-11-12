@@ -1,216 +1,150 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Landmark Guessing Game</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Free Chess Club - No Login Required</title>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --accent: #27ae60;
+            --bg: #f4f7f6;
+            --card-bg: #ffffff;
+            --text: #333333;
+        }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; background: var(--bg); color: var(--text); }
+        header { background: var(--primary); color: white; padding: 1.5rem; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        header h1 { margin: 0; font-size: 1.8rem; }
+        header p { margin: 5px 0 0; color: #bdc3c7; font-size: 0.9rem; }
+        
+        nav { display: flex; justify-content: center; background: #34495e; padding: 10px; gap: 10px; }
+        nav button { background: transparent; border: none; color: white; padding: 10px 20px; font-size: 1rem; cursor: pointer; border-radius: 4px; transition: background 0.2s; }
+        nav button:hover, nav button.active { background: var(--accent); }
 
-<style>
-  :root {
-    --bg: #0f172a;
-    --panel: #1e293b;
-    --text: #f8fafc;
-    --map-bg: #0a0f1f;
-    --border: #334155;
-    --map-size: min(80vw, 500px);
-  }
+        main { max-width: 800px; margin: 2rem auto; padding: 0 20px; }
+        .tab-content { display: none; background: var(--card-bg); padding: 2rem; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        .tab-content.active { display: block; }
 
-  body {
-    margin: 0;
-    background: var(--bg);
-    color: var(--text);
-    font-family: system-ui, sans-serif;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 30px 10px;
-  }
+        h2 { margin-top: 0; color: var(--primary); }
+        .btn { background: var(--accent); color: white; border: none; padding: 10px 20px; font-size: 1rem; border-radius: 4px; cursor: pointer; margin-top: 10px; }
+        .btn:hover { background: #219653; }
 
-  h1 {
-    margin-bottom: 10px;
-    font-size: 1.8rem;
-    font-weight: 600;
-  }
-
-  #world {
-    position: relative;
-    width: var(--map-size);
-    height: var(--map-size);
-    background: var(--map-bg);
-    border: 2px solid var(--border);
-    border-radius: 12px;
-    margin-top: 20px;
-    overflow: hidden;
-    cursor: crosshair;
-  }
-
-  /* Landmark shapes */
-  .shape-square { width: 18px; height: 18px; background: var(--color); }
-  .shape-circle { width: 18px; height: 18px; background: var(--color); border-radius: 50%; }
-  .shape-triangle {
-    width: 0; height: 0;
-    border-left: 9px solid transparent;
-    border-right: 9px solid transparent;
-    border-bottom: 18px solid var(--color);
-  }
-  .shape-ring {
-    width: 18px; height: 18px;
-    border: 3px solid var(--color);
-    border-radius: 50%;
-    background: transparent;
-  }
-  .shape-diamond {
-    width: 16px; height: 16px;
-    background: var(--color);
-    transform: rotate(45deg);
-  }
-  .shape-rect { width: 22px; height: 12px; background: var(--color); }
-
-  .landmark {
-    position: absolute;
-    transform: translate(-50%, -50%);
-    pointer-events: none;
-  }
-
-  .label {
-    position: absolute;
-    transform: translate(-50%, -120%);
-    font-size: 0.75rem;
-    background: rgba(0,0,0,0.5);
-    padding: 2px 6px;
-    border-radius: 4px;
-    pointer-events: none;
-    white-space: nowrap;
-  }
-
-  #info {
-    margin-top: 20px;
-    background: var(--panel);
-    padding: 15px;
-    border-radius: 10px;
-    width: min(90vw, 450px);
-    text-align: center;
-    font-size: 1rem;
-  }
-
-  #score {
-    margin-top: 10px;
-    font-size: 1.1rem;
-    opacity: 0.9;
-  }
-
-  .pulse {
-    animation: pulse 0.6s ease-out;
-  }
-
-  @keyframes pulse {
-    0% { transform: translate(-50%, -50%) scale(1); }
-    50% { transform: translate(-50%, -50%) scale(1.4); }
-    100% { transform: translate(-50%, -50%) scale(1); }
-  }
-</style>
+        .lesson-card { border-left: 4px solid var(--accent); background: #f9f9f9; padding: 15px; margin-bottom: 15px; border-radius: 0 4px 4px 0; }
+        .lesson-card h3 { margin: 0 0 5px; color: var(--primary); }
+        
+        input, textarea { width: 100%; padding: 10px; margin: 8px 0 15px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-family: inherit; }
+        
+        .chess-placeholder { width: 350px; height: 350px; background: #eee; border: 3px solid var(--primary); margin: 20px auto; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #666; border-radius: 4px; }
+    </style>
 </head>
-
 <body>
 
-<h1>Landmark Guessing Game</h1>
-<div id="info">Click on the map where you think the landmark is.</div>
-<div id="score">Score: 0 | Round: 1 / 5</div>
+    <header>
+        <h1>Open Chess Club</h1>
+        <p>100% Free • No Account Needed • Play & Learn Instantly</p>
+    </header>
 
-<div id="world"></div>
+    <nav>
+        <button class="active" onclick="switchTab('play', event)">Play Chess</button>
+        <button onclick="switchTab('lessons', event)">Lessons</button>
+        <button onclick="switchTab('contribute', event)">Add Lesson</button>
+    </nav>
 
-<script>
-/* Landmark definitions */
-const landmarks = [
-  { id: "A", name: "Green Square City", x: 15, y: 20, color: "#22c55e", shape: "square" },
-  { id: "B", name: "Blue Circle Lake", x: 80, y: 25, color: "#38bdf8", shape: "circle" },
-  { id: "C", name: "Orange Triangle Hub", x: 50, y: 10, color: "#f97316", shape: "triangle" },
-  { id: "D", name: "Purple Ring Station", x: 25, y: 75, color: "#a855f7", shape: "ring" },
-  { id: "E", name: "Yellow Plaza", x: 70, y: 70, color: "#eab308", shape: "diamond" },
-  { id: "F", name: "Red Block Port", x: 40, y: 50, color: "#ef4444", shape: "rect" }
-];
+    <main>
+        <!-- Play Tab -->
+        <section id="tab-play" class="tab-content active">
+            <h2>Game Arena</h2>
+            <p>Choose your game mode below. No login or sign-up required!</p>
+            <div style="display: flex; gap: 15px; margin-bottom: 20px;">
+                <button class="btn" onclick="startMode('Bot')">Play vs Bot</button>
+                <button class="btn" onclick="startMode('Local')">Pass & Play (Same Computer)</button>
+            </div>
+            <div id="game-status" style="font-weight: bold; color: var(--accent);">Mode: Select an option above</div>
+            <div class="chess-placeholder" id="board-ui">Chess Board Area</div>
+        </section>
 
-const world = document.getElementById("world");
-const info = document.getElementById("info");
-const scoreBox = document.getElementById("score");
+        <!-- Lessons Tab -->
+        <section id="tab-lessons" class="tab-content">
+            <h2>Chess Lessons</h2>
+            <p>Browse strategies and tactics shared by the community.</p>
+            <div id="lessons-container">
+                <!-- Lessons load here -->
+            </div>
+        </section>
 
-let score = 0;
-let round = 1;
-let target = null;
+        <!-- Contribute / Add Lesson Tab (Open to everyone since there are no accounts!) -->
+        <section id="tab-contribute" class="tab-content">
+            <h2>Contribute a Lesson</h2>
+            <p>Since this platform is completely open and free, anyone can add a lesson to help others learn!</p>
+            <label>Lesson Title:</label>
+            <input type="text" id="new-title" placeholder="e.g., The Scholar's Mate">
+            
+            <label>Lesson Content / Explanation:</label>
+            <textarea id="new-content" rows="5" placeholder="Explain the strategy or tactic here..."></textarea>
+            
+            <button class="btn" onclick="addLesson()">Publish Lesson Instantly</button>
+        </section>
+    </main>
 
-/* Render landmarks (hidden during guessing) */
-function renderLandmarks(show = false) {
-  world.innerHTML = "";
+    <script>
+        function switchTab(tabId, event) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('nav button').forEach(el => el.classList.remove('active'));
+            
+            document.getElementById(`tab-${tabId}`).classList.add('active');
+            if(event) event.currentTarget.classList.add('active');
+            if(tabId === 'lessons') loadLessons();
+        }
 
-  landmarks.forEach(lm => {
-    const dot = document.createElement("div");
-    dot.className = `landmark shape-${lm.shape}`;
-    dot.style.setProperty("--color", lm.color);
-    dot.style.left = lm.x + "%";
-    dot.style.top = lm.y + "%";
-    dot.style.opacity = show ? 1 : 0;
+        function startMode(mode) {
+            document.getElementById('game-status').innerText = `Active Mode: ${mode} Game`;
+            document.getElementById('board-ui').innerText = `${mode} Board Initialized`;
+        }
 
-    const label = document.createElement("div");
-    label.className = "label";
-    label.textContent = lm.id;
-    label.style.opacity = show ? 1 : 0;
+        // Default lessons if local storage is empty
+        const defaultLessons = [
+            { title: "The Center Control Opening", content: "Control the center squares (e4, d4, e5, d5) early in the game to give your pieces maximum mobility." },
+            { title: "Basic Checkmate: Rook & King", content: "Use your king to restrict the enemy king to the edge of the board, then deliver checkmate with your rook." }
+        ];
 
-    dot.appendChild(label);
-    world.appendChild(dot);
-  });
-}
+        function getStoredLessons() {
+            const saved = localStorage.getItem('chess_lessons');
+            return saved ? JSON.parse(saved) : defaultLessons;
+        }
 
-/* Pick a random target */
-function newRound() {
-  target = landmarks[Math.floor(Math.random() * landmarks.length)];
-  info.textContent = `Find: ${target.name}`;
-  renderLandmarks(false);
-}
+        function loadLessons() {
+            const lessons = getStoredLessons();
+            const container = document.getElementById('lessons-container');
+            container.innerHTML = lessons.map(l => `
+                <div class="lesson-card">
+                    <h3>${l.title}</h3>
+                    <p>${l.content}</p>
+                </div>
+            `).join('');
+        }
 
-/* Distance formula */
-function distance(x1, y1, x2, y2) {
-  return Math.hypot(x1 - x2, y1 - y2);
-}
+        function addLesson() {
+            const title = document.getElementById('new-title').value.trim();
+            const content = document.getElementById('new-content').value.trim();
 
-/* Handle guess */
-world.onclick = (e) => {
-  const rect = world.getBoundingClientRect();
-  const guessX = ((e.clientX - rect.left) / rect.width) * 100;
-  const guessY = ((e.clientY - rect.top) / rect.height) * 100;
+            if(!title || !content) {
+                alert('Please fill out both fields.');
+                return;
+            }
 
-  const dist = distance(guessX, guessY, target.x, target.y);
-  const points = Math.max(0, Math.round(100 - dist));
+            const lessons = getStoredLessons();
+            lessons.push({ title, content });
+            localStorage.setItem('chess_lessons', JSON.stringify(lessons));
 
-  score += points;
+            document.getElementById('new-title').value = '';
+            document.getElementById('new-content').value = '';
+            
+            alert('Lesson published successfully!');
+            switchTab('lessons');
+        }
 
-  info.textContent = `You were ${dist.toFixed(1)} units away (+${points} points)`;
-  scoreBox.textContent = `Score: ${score} | Round: ${round} / 5`;
-
-  revealCorrectLocation();
-
-  setTimeout(() => {
-    round++;
-    if (round > 5) {
-      info.textContent = `Game over! Final score: ${score}`;
-      renderLandmarks(true);
-    } else {
-      newRound();
-    }
-  }, 1200);
-};
-
-/* Show correct location with pulse animation */
-function revealCorrectLocation() {
-  renderLandmarks(true);
-
-  const dots = [...world.children];
-  const correct = dots.find(d => d.querySelector(".label").textContent === target.id);
-  correct.classList.add("pulse");
-}
-
-/* Start game */
-newRound();
-</script>
-
+        // Load lessons initially on startup
+        loadLessons();
+    </script>
 </body>
 </html>
